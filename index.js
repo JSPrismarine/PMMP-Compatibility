@@ -19,9 +19,12 @@ class PharComp {
     async onEnable() {
         this.api.getLogger().info('§aSuccessfully Loaded PMMP compatibility layer!§r');
 
-        const pluginFiles = fs.readdirSync(path.join(process.cwd(), 'plugins', 'phar-comp', 'plugins'));
-        const plugins = await Promise.all(pluginFiles.map(async (file) => {
+        const pluginFiles = fs.readdirSync(path.join(process.cwd(), 'plugins'));
+        const plugins = (await Promise.all(pluginFiles.map(async (file) => {
             return new Promise((resolve) => {
+                if (!file.includes('.phar'))
+                    return resolve();
+
                 const extract = new phar.extract();
                 const files = {};
 
@@ -48,10 +51,10 @@ class PharComp {
                     });
                 });
 
-                const archive = fs.createReadStream(path.join(process.cwd(), 'plugins', 'phar-comp', 'plugins', file));
+                const archive = fs.createReadStream(path.join(process.cwd(), 'plugins', file));
                 archive.pipe(extract);
             });
-        }));
+        }))).filter(a => a);
 
         plugins.forEach(async (plugin) => {
             const runtime = this.runtime;
@@ -69,7 +72,7 @@ class PharComp {
                 async onEnable() {
                     // runtime.eval(plugin.files[`src/${plugin.main.replace('\\', '/')}.php`]);
                 }
-                onDisable() { }
+                async onDisable() { }
             })());
         })
     }

@@ -39,6 +39,7 @@ class PharComp {
 
         plugins.forEach(async (plugin) => {
             const php = uniter.createEngine('PHP');
+            const api = this.api;
             this.api.getServer().getPluginManager().registerClassPlugin(plugin, new (class Plugin {
                 getName() {
                     return plugin.name;
@@ -54,10 +55,8 @@ class PharComp {
                     if (!main)
                         throw new Error('Invalid plugin entry point');
 
-                    console.log(main);
-
-                    php.getStdout().on('data', (text) => { console.log(text); });
-                    php.execute(main);
+                    php.getStdout().on('data', (msg) => { api.getLogger().debug(msg) });
+                    php.execute(main, `src/${plugin.main.replace('\\', '/')}.php`);
                 }
                 async onDisable() { }
             })());

@@ -10,9 +10,8 @@
     "author": "Filiph Sandström",
     "license": "MIT",
     "dependencies": {
-        "phar-stream": "^2.0.3",
-        "php-core": "^1.1.0",
-        "php-runtime": "^0.5.1",
+        "phar": "^1.8.0",
+        "uniter": "^2.16.0",
         "yaml": "^1.10.0"
     }
 }

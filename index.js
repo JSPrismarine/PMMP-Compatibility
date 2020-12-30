@@ -1,5 +1,5 @@
-const Runtime = require('php-runtime');
-const phar = require('phar-stream');
+const uniter = require('uniter');
+const phar = require('phar');
 const fs = require('fs');
 const path = require('path');
 const YAML = require('yaml');
@@ -7,13 +7,6 @@ const YAML = require('yaml');
 class PharComp {
     constructor(api) {
         this.api = api;
-        this.runtime = new Runtime({
-            core: {
-                config: {
-                    extensions: ['php-core']
-                }
-            }
-        });
     }
 
     async onEnable() {
@@ -25,40 +18,27 @@ class PharComp {
                 if (!file.includes('.phar'))
                     return resolve();
 
-                const extract = new phar.extract();
+                const archive = new phar.Archive();
+                archive.loadPharData(fs.readFileSync(path.join(process.cwd(), 'plugins', file)));
                 const files = {};
 
-                extract.on('entry', (header, stream, next) => {
-                    if (header.entry_name === '.poggit')
-                        return next();
-
-                    const chunks = [];
-                    stream.on('data', chunk => chunks.push(chunk))
-                    stream.on('end', () => {
-                        files[header.entry_name] = Buffer.concat(chunks).toString('utf8');
-                        next();
-                    });
+                archive.getFiles().forEach((file) => {
+                    files[file.getName()] = file.getContents();
                 });
 
-                extract.on('finish', () => {
-                    const config = YAML.parse(files['plugin.yml']);
-                    resolve({
-                        name: config.name,
-                        version: config.version,
-                        description: config.description,
-                        main: config.main,
-                        files
-                    });
+                const config = YAML.parse(files['plugin.yml']);
+                resolve({
+                    name: config.name,
+                    version: config.version,
+                    description: config.description,
+                    main: config.main,
+                    files
                 });
-
-                const archive = fs.createReadStream(path.join(process.cwd(), 'plugins', file));
-                archive.pipe(extract);
             });
         }))).filter(a => a);
 
         plugins.forEach(async (plugin) => {
-            const runtime = this.runtime;
-
+            const php = uniter.createEngine('PHP');
             this.api.getServer().getPluginManager().registerClassPlugin(plugin, new (class Plugin {
                 getName() {
                     return plugin.name;
@@ -70,7 +50,14 @@ class PharComp {
                     return plugin.version;
                 }
                 async onEnable() {
-                    // runtime.eval(plugin.files[`src/${plugin.main.replace('\\', '/')}.php`]);
+                    const main = plugin.files[`src/${plugin.main.replace('\\', '/')}.php`];
+                    if (!main)
+                        throw new Error('Invalid plugin entry point');
+
+                    console.log(main);
+
+                    php.getStdout().on('data', (text) => { console.log(text); });
+                    php.execute(main);
                 }
                 async onDisable() { }
             })());

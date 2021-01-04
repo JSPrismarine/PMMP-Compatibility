@@ -3,6 +3,11 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
+    "scripts": {
+        "build": "ncc build ./index.ts -o ./dist/ --minify --no-cache",
+        "archive": "npm-pack-zip",
+        "postarchive": "renamer --find zip --replace jspz *"
+    },
     "prismarine": {
         "apiVersion": "1.0",
         "displayName": "§9PMMP Compatibility§r"
@@ -13,5 +18,12 @@
         "phar": "^1.8.0",
         "uniter": "^2.16.0",
         "yaml": "^1.10.0"
+    },
+    "devDependencies": {
+        "@jsprismarine/prismarine": "latest",
+        "@types/node": "^14.14.19",
+        "@vercel/ncc": "0.25.1",
+        "npm-pack-zip": "1.2.7",
+        "renamer": "2.0.1"
     }
 }

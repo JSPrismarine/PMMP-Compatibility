@@ -17,7 +17,7 @@
     "dependencies": {
         "phar": "^1.8.0",
         "uniter": "^2.16.0",
-        "yaml": "^1.10.0"
+        "yaml": "^2.0.0"
     },
     "devDependencies": {
         "@jsprismarine/prismarine": "^0.1.0-rc.41",
